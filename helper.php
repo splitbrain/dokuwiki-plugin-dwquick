@@ -34,7 +34,7 @@ class helper_plugin_dwquick extends DokuWiki_Plugin {
     }
 
     /**
-     * Find a matching page
+     * Find a matching page and forward to it
      *
      * @param string $search
      */
@@ -50,8 +50,7 @@ class helper_plugin_dwquick extends DokuWiki_Plugin {
 
         if(!preg_match('/^https?:\/\//', $result)) $result = 'https://www.dokuwiki.org/'.cleanID($result);
 
-        echo $result;
-        // FIXME send_redirect($result);
+        send_redirect($result);
     }
 
     /**
