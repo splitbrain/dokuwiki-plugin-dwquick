@@ -1,0 +1,7 @@
+base   dwquick
+author Andreas Gohr
+email  andi@splitbrain.org
+date   2015-02-07
+name   dwquick plugin
+desc   Quick jump and URL shortener for doku.wiki
+url    http://doku.wiki
