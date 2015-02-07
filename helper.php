@@ -21,7 +21,7 @@ class helper_plugin_dwquick extends DokuWiki_Plugin {
     private $namespaces = array('', 'faq:', 'plugin:', 'devel:', 'config:', 'template:', 'install:');
 
     /** @var helper_plugin_sqlite */
-    private $sqlite = null;
+    public $sqlite = null;
 
     /**
      * initialize the DB
@@ -48,10 +48,49 @@ class helper_plugin_dwquick extends DokuWiki_Plugin {
         if(!$result) $result = $this->match_page($id);
         if(!$result) $result = 'http://search.dokuwiki.org/'.urlencode($search);
 
-        if(!preg_match('/^https?:\/\//', $result)) $result = 'https://www.dokuwiki.org/'.$result;
+        if(!preg_match('/^https?:\/\//', $result)) $result = 'https://www.dokuwiki.org/'.cleanID($result);
 
         echo $result;
         // FIXME send_redirect($result);
+    }
+
+    /**
+     * Store a new URL in the shortcut DB
+     *
+     * @param string $url
+     * @param string $handle
+     * @return string
+     */
+    public function store_url($url, $handle='') {
+        if(!$handle) $handle = $this->gen_handle();
+        $handle = cleanID($handle);
+
+        $this->sqlite->query("INSERT OR REPLACE INTO urls (handle, url) VALUES (?, ?)", array($handle, $url));
+        return $handle;
+    }
+
+    /**
+     * Generates an automatic handle
+     *
+     * @return string
+     */
+    protected function gen_handle() {
+        $res = $this->sqlite->query("SELECT val FROM opts WHERE opt = 'handlecounter'");
+        $current = (int) $this->sqlite->res2single($res);
+        $this->sqlite->res_close($res);
+        $current++;
+        $this->sqlite->query("INSERT OR REPLACE INTO opts (opt, val) VALUES ('handlecounter', ?)", $current);
+
+        $handle = 'x'.base_convert($current, 10, 36);
+        $res = $this->sqlite->query("SELECT handle FROM urls WHERE handle = ?", $handle);
+        $check = $this->sqlite->res2single($res);
+        $this->sqlite->res_close($res);
+
+        if($check) {
+            // try again we had a clash
+            return $this->gen_handle();
+        }
+        return $handle;
     }
 
     /**
